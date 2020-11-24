@@ -12,11 +12,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
+import androidx.lifecycle.Observer;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -70,6 +73,7 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
     private LinearLayout noResults;
     private ImageView icon;
     private SwipeRefreshLayout refresh;
+    private MainViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +86,7 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
 
         setInitialConfiguration();
         OtherUtils.requestPermissions(context);
+
 
         recyclerView = (RecyclerView) findViewById(R.id.app_list);
         refresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
@@ -107,20 +112,61 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                Log.e("CANT", "tahtmessge");
+                mViewModel.initOrUpdatePackageLists(getBaseContext(),true,appPreferences);
                 refresh.setRefreshing(true);
-                new getInstalledApps().execute();
             }
         });
 
-        refresh.post(new Runnable() {
+        mViewModel = new MainViewModelFactory().create(MainViewModel.class);
+        mViewModel.initOrUpdatePackageLists(this,false,appPreferences);
+        mViewModel.getAppListsLiveData().observe(this, new Observer<DataRepositories.AppLists>() {
             @Override
-            public void run() {
-                refresh.setRefreshing(true);
+            public void onChanged(DataRepositories.AppLists appLists) {
+
+                appInstalledAdapter = new AppAdapter(context, appLists.appInstalledList);
+                appSystemAdapter = new AppAdapter(context, appLists.appSystemList);
+                appDisabledAdapter = new AppAdapter(context, appLists.appDisabledList);
+
+                appHiddenAdapter = new AppAdapter(context, appLists.appHiddenList);
+                appFavoriteAdapter = new AppAdapter(context, appLists.appFavoriteList);
+
+                setCurrentAdapter();
+                refresh.setRefreshing(false);
             }
         });
-        new getInstalledApps().execute();
     }
 
+    private void setCurrentAdapter() {
+        switch (App.getCurrentAdapter()) {
+            case 0:
+                recyclerView.swapAdapter(appInstalledAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_installed));
+                break;
+            case 1:
+                recyclerView.swapAdapter(appSystemAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_system));
+                break;
+            case 2:
+                recyclerView.swapAdapter(appDisabledAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_disabled));
+                break;
+            case 3:
+                recyclerView.swapAdapter(appHiddenAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_hidden));
+                break;
+            case 4:
+                recyclerView.swapAdapter(appFavoriteAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_favorite));
+                break;
+            default:
+                recyclerView.swapAdapter(appInstalledAdapter, false);
+                OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_installed));
+                break;
+        }
+        drawer = setNavigationDrawer(context, toolbar, recyclerView, true, appInstalledAdapter, appSystemAdapter, appDisabledAdapter, appHiddenAdapter, appFavoriteAdapter);
+        refresh.setRefreshing(false);
+    }
     private void setInitialConfiguration() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setBackgroundColor(appPreferences.getPrimaryColor());
@@ -131,100 +177,6 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(OtherUtils.dark(appPreferences.getPrimaryColor(), 0.8));
         getWindow().setNavigationBarColor(appPreferences.getPrimaryColor());
-    }
-
-    class getInstalledApps extends AsyncTask<Void, String, Void> {
-        private List<AppItem> appInstalledList = new ArrayList<>();
-        private List<AppItem> appSystemList = new ArrayList<>();
-        private List<AppItem> appDisabledList = new ArrayList<>();
-        private List<AppItem> appHiddenList = new ArrayList<>();
-        private List<AppItem> appFavoriteList = new ArrayList<>();
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            List<PackageInfo> packages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA);
-            for (PackageInfo packageInfo : packages) {
-                AppItem appItem = new AppItem(packageInfo);
-                if (!packageInfo.applicationInfo.enabled) {
-                    appItem.disable = true;
-                    appDisabledList.add(appItem);
-                } else if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
-                    appItem.system = true;
-                    appSystemList.add(appItem);
-                } else {
-                    appInstalledList.add(appItem);
-                }
-            }
-
-            appInstalledList = sortAdapter(appInstalledList);
-            appSystemList = sortAdapter(appSystemList);
-            appDisabledList = sortAdapter(appDisabledList);
-
-            appInstalledAdapter = new AppAdapter(context, appInstalledList);
-            appSystemAdapter = new AppAdapter(context, appSystemList);
-            appDisabledAdapter = new AppAdapter(context, appDisabledList);
-
-            appHiddenList = sortAdapter(appHiddenList);
-            appHiddenAdapter = new AppAdapter(context, appHiddenList);
-
-            appFavoriteList = sortAdapter(appFavoriteList);
-            appFavoriteAdapter = new AppAdapter(context, appFavoriteList);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            switch (App.getCurrentAdapter()) {
-                case 0:
-                    recyclerView.swapAdapter(appInstalledAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_installed));
-                    break;
-                case 1:
-                    recyclerView.swapAdapter(appSystemAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_system));
-                    break;
-                case 2:
-                    recyclerView.swapAdapter(appDisabledAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_disabled));
-                    break;
-                case 3:
-                    recyclerView.swapAdapter(appHiddenAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_hidden));
-                    break;
-                case 4:
-                    recyclerView.swapAdapter(appFavoriteAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_favorite));
-                    break;
-                default:
-                    recyclerView.swapAdapter(appInstalledAdapter, false);
-                    OtherUtils.setToolbarTitle(context, getResources().getString(R.string.apps_installed));
-                    break;
-            }
-            drawer = setNavigationDrawer(context, toolbar, recyclerView, true, appInstalledAdapter, appSystemAdapter, appDisabledAdapter, appHiddenAdapter, appFavoriteAdapter);
-            super.onPostExecute(aVoid);
-            refresh.setRefreshing(false);
-        }
-    }
-
-    public List<AppItem> sortAdapter(List<AppItem> list) {
-        Collections.sort(list, new Comparator<AppItem>() {
-            @Override
-            public int compare(AppItem one, AppItem two) {
-                switch (appPreferences.getSortMethod()) {
-                    case "0":
-                        return one.getPackageLabel().compareTo(two.getPackageLabel());
-                    case "1":
-                        return one.getPackageName().compareTo(two.getPackageName());
-                    case "2":
-                        return one.getInstall().compareTo(two.getInstall());
-                    case "3":
-                        return one.getUpdate().compareTo(two.getUpdate());
-                    default:
-                        return one.getPackageLabel().compareTo(two.getPackageLabel());
-                }
-            }
-        });
-        return list;
     }
 
     public static Drawer setNavigationDrawer(final Context context, final Toolbar toolbar, final RecyclerView recyclerView, boolean badge, final AppAdapter appInstalledAdapter, final AppAdapter appSystemAdapter, final AppAdapter appDisabledAdapter, final AppAdapter appHiddenAdapter, final AppAdapter appFavoriteAdapter) {
@@ -371,13 +323,6 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
                 }
             }
         }
-    }
-
-    @Override
-    public void onResume() {
-        refresh.setRefreshing(true);
-        new getInstalledApps().execute();
-        super.onResume();
     }
 
     @Override
