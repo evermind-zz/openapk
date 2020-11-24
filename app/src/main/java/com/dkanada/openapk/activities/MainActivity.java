@@ -112,12 +112,12 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
         refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Log.e("CANT", "tahtmessge");
                 mViewModel.initOrUpdatePackageLists(getBaseContext(),true,appPreferences);
                 refresh.setRefreshing(true);
             }
         });
 
+        refresh.setRefreshing(true);
         mViewModel = new MainViewModelFactory().create(MainViewModel.class);
         mViewModel.initOrUpdatePackageLists(this,false,appPreferences);
         mViewModel.getAppListsLiveData().observe(this, new Observer<DataRepositories.AppLists>() {
