@@ -2,7 +2,7 @@ package com.dkanada.openapk.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.openapk.App;
 import com.dkanada.openapk.R;

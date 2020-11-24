@@ -2,13 +2,11 @@ package com.dkanada.openapk.activities;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.dkanada.openapk.App;
 import com.dkanada.openapk.R;
 import com.dkanada.openapk.fragments.SettingsFragment;
 import com.dkanada.openapk.utils.AppPreferences;
