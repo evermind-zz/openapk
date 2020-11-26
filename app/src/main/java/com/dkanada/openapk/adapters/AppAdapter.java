@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,12 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> implements Filterable {
-    private List<AppItem> appList;
+    private List<AppItem> appList = new ArrayList<>();
     private List<AppItem> appListSearch;
     private Context context;
 
-    public AppAdapter(Context context, List<AppItem> appList) {
-        this.appList = appList;
+    public AppAdapter(Context context) {
         this.context = context;
     }
 
@@ -151,6 +151,46 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> i
 
             vOpen = (Button) view.findViewById(R.id.btnOpen);
             vShare = (Button) view.findViewById(R.id.btnShare);
+        }
+    }
+
+    public void setData(List<AppItem> newData) {
+        AppItemsDiffCallback appItemsDiffCallback = new AppItemsDiffCallback(appList, newData);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(appItemsDiffCallback);
+
+        appList.clear();
+        appList.addAll(newData);
+        appListSearch = null;
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    class AppItemsDiffCallback extends DiffUtil.Callback {
+
+        private final List<AppItem> oldAppItems, newAppItems;
+
+        public AppItemsDiffCallback(List<AppItem> oldAppItems, List<AppItem> newAppItems) {
+            this.oldAppItems = oldAppItems;
+            this.newAppItems = newAppItems;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldAppItems.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newAppItems.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldAppItems.get(oldItemPosition) == newAppItems.get(newItemPosition);
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldAppItems.get(oldItemPosition).getPackageName().equals(newAppItems.get(newItemPosition).getPackageName());
         }
     }
 }

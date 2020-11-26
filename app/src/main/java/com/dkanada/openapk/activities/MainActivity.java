@@ -117,6 +117,13 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
             }
         });
 
+        appInstalledAdapter = new AppAdapter(context);
+        appSystemAdapter = new AppAdapter(context);
+        appDisabledAdapter = new AppAdapter(context);
+
+        appHiddenAdapter = new AppAdapter(context);
+        appFavoriteAdapter = new AppAdapter(context);
+
         refresh.setRefreshing(true);
         mViewModel = new MainViewModelFactory().create(MainViewModel.class);
         mViewModel.initOrUpdatePackageLists(this,false,appPreferences);
@@ -124,12 +131,12 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
             @Override
             public void onChanged(DataRepositories.AppLists appLists) {
 
-                appInstalledAdapter = new AppAdapter(context, appLists.appInstalledList);
-                appSystemAdapter = new AppAdapter(context, appLists.appSystemList);
-                appDisabledAdapter = new AppAdapter(context, appLists.appDisabledList);
+                appInstalledAdapter.setData( appLists.appInstalledList);
+                appSystemAdapter.setData( appLists.appSystemList);
+                appDisabledAdapter.setData( appLists.appDisabledList);
 
-                appHiddenAdapter = new AppAdapter(context, appLists.appHiddenList);
-                appFavoriteAdapter = new AppAdapter(context, appLists.appFavoriteList);
+                appHiddenAdapter.setData( appLists.appHiddenList);
+                appFavoriteAdapter.setData( appLists.appFavoriteList);
 
                 setCurrentAdapter();
                 refresh.setRefreshing(false);
@@ -284,7 +291,8 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
         if (search.isEmpty()) {
             ((AppAdapter) recyclerView.getAdapter()).getFilter().filter("");
         } else {
-            ((AppAdapter) recyclerView.getAdapter()).getFilter().filter(search.toLowerCase());
+            AppAdapter ada = ((AppAdapter) recyclerView.getAdapter());
+            ada.getFilter().filter(search.toLowerCase());
         }
         if (recyclerView.getAdapter().getItemCount() == 0) {
             noResults.setVisibility(View.VISIBLE);
