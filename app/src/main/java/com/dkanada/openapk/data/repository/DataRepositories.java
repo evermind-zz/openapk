@@ -1,4 +1,4 @@
-package com.dkanada.openapk.activities;
+package com.dkanada.openapk.data.repository;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
