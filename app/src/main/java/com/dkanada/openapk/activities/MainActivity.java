@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.dkanada.openapk.App;
 import com.dkanada.openapk.R;
 import com.dkanada.openapk.adapters.AppAdapter;
+import com.dkanada.openapk.data.repository.AppLists;
 import com.dkanada.openapk.data.repository.DataRepositories;
 import com.dkanada.openapk.utils.AppPreferences;
 import com.dkanada.openapk.utils.OtherUtils;
@@ -115,12 +116,10 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
         appHiddenAdapter = new AppAdapter(context);
         appFavoriteAdapter = new AppAdapter(context);
 
-        refresh.setRefreshing(true);
         mViewModel = new MainViewModelFactory().create(MainViewModel.class);
-        mViewModel.initOrUpdatePackageLists(this,false,appPreferences);
-        mViewModel.getAppListsLiveData().observe(this, new Observer<DataRepositories.AppLists>() {
+        mViewModel.getAppListsLiveData().observe(this, new Observer<AppLists>() {
             @Override
-            public void onChanged(DataRepositories.AppLists appLists) {
+            public void onChanged(AppLists appLists) {
 
                 appInstalledAdapter.setData( appLists.appInstalledList);
                 appSystemAdapter.setData( appLists.appSystemList);
@@ -133,6 +132,8 @@ public class MainActivity extends ThemeActivity implements SearchView.OnQueryTex
                 refresh.setRefreshing(false);
             }
         });
+        refresh.setRefreshing(true);
+        mViewModel.initOrUpdatePackageLists(this,false,appPreferences);
     }
 
     private void setCurrentAdapter() {

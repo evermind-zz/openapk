@@ -22,14 +22,6 @@ import androidx.lifecycle.MutableLiveData;
 
 public class DataRepositories {
 
-    public class AppLists
-    {
-        public List<AppItem> appInstalledList = new ArrayList<>();
-        public List<AppItem> appSystemList = new ArrayList<>();
-        public List<AppItem> appDisabledList = new ArrayList<>();
-        public List<AppItem> appHiddenList = new ArrayList<>();
-        public List<AppItem> appFavoriteList = new ArrayList<>();
-    }
 
     private AppLists mAppLists = new AppLists();
     private PackageManager packageManager;

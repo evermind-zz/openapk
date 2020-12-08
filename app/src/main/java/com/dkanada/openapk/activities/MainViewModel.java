@@ -2,6 +2,7 @@ package com.dkanada.openapk.activities;
 
 import android.content.Context;
 
+import com.dkanada.openapk.data.repository.AppLists;
 import com.dkanada.openapk.data.repository.DataRepositories;
 import com.dkanada.openapk.utils.AppPreferences;
 
@@ -12,7 +13,7 @@ public class MainViewModel extends ViewModel {
 
     private DataRepositories mDataRepositories = DataRepositories.getInstance();
 
-    public LiveData<DataRepositories.AppLists> getAppListsLiveData() {
+    public LiveData<AppLists> getAppListsLiveData() {
         return mDataRepositories.getAppListsLiveData();
     }
 
