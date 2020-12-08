@@ -49,4 +49,5 @@ dependencies {
     implementation 'com.jaredrummler:colorpicker:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.twitter.serial:serial:0.1.6'
 }
