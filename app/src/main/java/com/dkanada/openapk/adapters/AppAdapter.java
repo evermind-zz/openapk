@@ -185,12 +185,13 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> i
 
         @Override
         public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldAppItems.get(oldItemPosition) == newAppItems.get(newItemPosition);
+            return oldAppItems.get(oldItemPosition).getPackageName().equals(newAppItems.get(newItemPosition).getPackageName());
         }
 
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldAppItems.get(oldItemPosition).getPackageName().equals(newAppItems.get(newItemPosition).getPackageName());
+            return (oldAppItems.get(oldItemPosition).getPackageName().equals(newAppItems.get(newItemPosition).getPackageName())) &&
+                    (oldAppItems.get(oldItemPosition).getIcon() == (newAppItems.get(newItemPosition).getIcon()));
         }
     }
 }
